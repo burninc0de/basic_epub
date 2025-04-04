@@ -27,22 +27,28 @@ export const Reader: React.FC = () => {
   useEffect(() => {
     if (!viewerRef.current) return;
 
-    // Load the book - using a test EPUB for now
-    bookRef.current = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
+    try {
+      // Load the book - using a test EPUB for now
+      bookRef.current = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
 
-    // Create rendition with updated options
-    renditionRef.current = bookRef.current.renderTo(viewerRef.current, {
-      width: '100%',
-      height: '100%',
-      spread: 'none',
-      flow: 'paginated',
-      manager: 'default',
-      minSpreadWidth: 800,
-      allowScriptedContent: true,
-    });
+      // Create rendition with updated options
+      renditionRef.current = bookRef.current.renderTo(viewerRef.current, {
+        width: '100%',
+        height: '100%',
+        spread: 'none',
+        flow: 'paginated',
+        manager: 'default',
+        minSpreadWidth: 800,
+        allowScriptedContent: true,
+      });
 
-    // Display first chapter
-    renditionRef.current.display("chapter_001.xhtml");
+      // Display first chapter
+      renditionRef.current.display("chapter_001.xhtml").catch(err => {
+        setError(`Failed to load chapter: ${err.message}`);
+      });
+    } catch (err) {
+      setError(`Failed to load book: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
 
     // Set up keyboard navigation
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -115,13 +121,7 @@ export const Reader: React.FC = () => {
     <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
       {/* Header */}
       <div className="bg-white shadow-sm p-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Test Book</h1>
-        <button
-          className="text-gray-600 hover:text-gray-900"
-          onClick={() => window.history.back()}
-        >
-          Close
-        </button>
+        <h1 className="text-xl font-semibold">Epub Reader</h1>
       </div>
 
       {/* Main content area */}

@@ -17,7 +17,11 @@
     "allowJs": true,
     "esModuleInterop": true,
     "skipDefaultLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "src",
+    "paths": {
+      "*": ["*"]
+    }
   },
   "references": [
     { "path": "./tsconfig.node.json" }
