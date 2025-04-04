@@ -137,7 +137,7 @@ export const Reader: React.FC = () => {
           <>
             <div 
               ref={viewerRef} 
-              className={`absolute inset-0 bg-white dark:bg-gray-800 transition-colors`} 
+              className={`absolute inset-0 bottom-16 bg-white dark:bg-gray-800 transition-colors`} 
             />
             <button
               className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg hover:bg-white"

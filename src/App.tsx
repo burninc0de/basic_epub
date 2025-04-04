@@ -1,6 +1,6 @@
-import React from 'react';
-import { Reader } from './components/Reader';
-import { useReaderStore } from './store';
+//import React from 'react';
+import { Reader } from './components/Reader.tsx';
+//import { useReaderStore } from './store';
 
 function App() {
   // For testing purposes, always render Reader
