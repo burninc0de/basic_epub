@@ -109,6 +109,15 @@ export const Reader: React.FC = () => {
     });
   }, [fontSize, lineHeight, theme, fontFamily]);
 
+  // Add this useEffect to handle dark mode class
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
   const handlePrevPage = () => {
     if (renditionRef.current) renditionRef.current.prev();
   };
@@ -118,17 +127,17 @@ export const Reader: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="h-screen flex flex-col bg-white dark:bg-gray-800">
       {/* Header */}
-      <div className="bg-white shadow-sm p-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Epub Reader</h1>
+      <div className="bg-white dark:bg-gray-800 shadow-sm p-4 flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Epub Reader</h1>
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative bg-white dark:bg-gray-800">
         {error ? (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-red-50 text-red-700 p-4 rounded-lg shadow-sm flex items-center gap-2 max-w-md">
+            <div className="bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-100 p-4 rounded-lg shadow-sm flex items-center gap-2 max-w-md">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <p>{error}</p>
             </div>
@@ -137,17 +146,17 @@ export const Reader: React.FC = () => {
           <>
             <div 
               ref={viewerRef} 
-              className={`absolute inset-0 bottom-16 bg-white dark:bg-gray-800 transition-colors`} 
+              className="absolute inset-0 bottom-16 bg-white dark:bg-gray-800 transition-colors"
             />
             <button
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg hover:bg-white"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 dark:bg-gray-700/80 p-2 rounded-full shadow-lg hover:bg-white dark:hover:bg-gray-600 text-gray-800 dark:text-white"
               onClick={handlePrevPage}
               aria-label="Previous page"
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
             <button
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg hover:bg-white"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 dark:bg-gray-700/80 p-2 rounded-full shadow-lg hover:bg-white dark:hover:bg-gray-600 text-gray-800 dark:text-white"
               onClick={handleNextPage}
               aria-label="Next page"
             >

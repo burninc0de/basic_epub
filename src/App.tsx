@@ -1,6 +1,7 @@
 //import React from 'react';
 import { Reader } from './components/Reader.tsx';
 //import { useReaderStore } from './store';
+import { useEffect } from 'react';
 
 function App() {
   // For testing purposes, always render Reader
@@ -30,6 +31,14 @@ function App() {
     </div>
   );
   */
+  
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [theme]);
 }
 
 export default App;
