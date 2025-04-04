@@ -12,5 +12,8 @@ export default defineConfig({
       usePolling: true,
       interval: 100
     },
+    headers: {
+      'Content-Security-Policy': "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; img-src 'self' data: blob: https:; frame-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+    }
   },
 });

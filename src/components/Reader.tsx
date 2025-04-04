@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
 import { useReaderStore } from '../store';
 import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
+import { ReaderSettings } from './ReaderSettings';
 
 export const Reader: React.FC = () => {
-  const { currentBook, currentCfi, setCurrentCfi } = useReaderStore();
+  const { currentBook, currentCfi, setCurrentCfi, fontSize, lineHeight, theme } = useReaderStore();
   const viewerRef = useRef<HTMLDivElement>(null);
   const renditionRef = useRef<any>(null);
   const bookRef = useRef<any>(null);
@@ -82,6 +83,19 @@ export const Reader: React.FC = () => {
     };
   }, [currentBook]);
 
+  useEffect(() => {
+    if (!renditionRef.current) return;
+    
+    renditionRef.current.themes.default({
+      body: {
+        'font-size': `${fontSize}px !important`,
+        'line-height': `${lineHeight} !important`,
+        'background-color': theme === 'dark' ? '#1a1a1a !important' : '#ffffff !important',
+        'color': theme === 'dark' ? '#ffffff !important' : '#000000 !important'
+      }
+    });
+  }, [fontSize, lineHeight, theme]);
+
   const handlePrevPage = () => {
     if (renditionRef.current) {
       renditionRef.current.prev();
@@ -97,7 +111,7 @@ export const Reader: React.FC = () => {
   if (!currentBook) return null;
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className={`h-screen flex flex-col ${theme === 'dark' ? 'dark' : ''}`}>
       <div className="bg-white shadow-sm p-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">{currentBook.title}</h1>
         <button
@@ -135,6 +149,7 @@ export const Reader: React.FC = () => {
           </>
         )}
       </div>
+      <ReaderSettings />
     </div>
   );
 };
