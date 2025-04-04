@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
 import { useReaderStore } from '../store';
-import { ArrowLeft, ArrowRight, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
 import { ReaderSettings } from './ReaderSettings';
 
 import styles from './reader.module.css';
@@ -20,14 +20,13 @@ const getFontFamilyValue = (key: string) => {
 
 export const Reader: React.FC = () => {
   // Get reader state and actions from the global store
-  const { currentBook, currentCfi, setCurrentCfi, fontSize, lineHeight, theme, fontFamily, setTheme, currentPage, setCurrentPage, totalPages, setTotalPages } = useReaderStore();
+  const { currentBook, currentCfi, setCurrentCfi, fontSize, lineHeight, theme, fontFamily, setTheme } = useReaderStore();
   
   // Refs to hold DOM elements and epub.js instances
   const viewerRef = useRef<HTMLDivElement>(null);     // Container where the book will be rendered
   const renditionRef = useRef<ePub.Rendition | null>(null);  // epub.js rendition instance
   const bookRef = useRef<ePub.Book | null>(null);     // epub.js book instance
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Main useEffect for book loading and initialization - removed style dependencies
   useEffect(() => {
@@ -36,53 +35,75 @@ export const Reader: React.FC = () => {
     const loadBook = async () => {
       try {
         setError(null);
-        setIsLoading(true);
-        
-        // Create book instance
         bookRef.current = ePub(currentBook.filePath);
-
-        // Create rendition first
+        await bookRef.current.ready;
+        
         renditionRef.current = bookRef.current.renderTo(viewerRef.current!, {
-          manager: "continuous",
-          flow: "paginated",
-          width: "100%",
-          height: "100%",
-          snap: true
+          width: '100%',
+          height: '100%',
+          spread: 'none',
+          flow: 'paginated',
+          manager: 'default',
+          minSpreadWidth: 800,
+          allowScriptedContent: true,
         });
 
-        // Display chapter and get the promise
-        const displayed = renditionRef.current.display();
-
-        // Handle the display promise exactly like the example
-        displayed.then(function(renderer){
-          // Now we can set up listeners after content is displayed
-          renditionRef.current?.on('keyup', (event: KeyboardEvent) => {
-            // Left Key
-            if ((event.keyCode || event.which) == 37) {
-              renditionRef.current?.prev();
+        // Apply initial styles right after creating the rendition
+        renditionRef.current.themes.default({
+          body: {
+            'font-size': `${fontSize}px !important`,
+            'line-height': `${lineHeight} !important`,
+            'font-family': `${getFontFamilyValue(fontFamily)} !important`,
+            'background-color': theme === 'dark' ? '#1f2937 !important' : '#ffffff !important',
+            'color': theme === 'dark' ? '#f3f4f6 !important' : '#111827 !important',
+          },
+          'a': {
+            'color': theme === 'dark' ? '#60a5fa !important' : '#2563eb !important',
+          },
+          'h1, h2, h3, h4, h5, h6': {
+            'color': theme === 'dark' ? '#f3f4f6 !important' : '#111827 !important',
+          },
+          'img': {
+            'filter': theme === 'dark' ? 'brightness(0.8) contrast(1.2)' : 'none',
+          },
+          '.container ': {
+            'width': '100% !important',
+            'max-width': '100vw !important',
+            '@media screen and (min-width: 769px)': {
+              'width': '546px !important'
             }
-            // Right Key
-            if ((event.keyCode || event.which) == 39) {
-              renditionRef.current?.next();
+          },
+          '.epub-view': {
+            'width': '100% !important',
+            'max-width': '100vw !important',
+            '@media screen and (min-width: 769px)': {
+              'width': '546px !important'
             }
-          });
+          }
         });
 
-        // Navigation loaded - matching example structure
-        bookRef.current.loaded.navigation.then(function(toc){
-          console.log(toc); // We can use this later for TOC
+        // Display book at last saved position or start
+        await renditionRef.current.display(currentCfi || undefined);
+
+        // Set up event listeners for navigation and tracking
+        renditionRef.current.on('keyup', (event: KeyboardEvent) => {
+          if (event.key === 'ArrowLeft') handlePrevPage();
+          if (event.key === 'ArrowRight') handleNextPage();
         });
 
-        // Clean up previous instances on unmount
-        return () => {
-          if (renditionRef.current) renditionRef.current.destroy();
-          if (bookRef.current) bookRef.current.destroy();
-        };
+        renditionRef.current.on('locationChanged', (location: ePub.Location) => {
+          setCurrentCfi(location.start.cfi);
+        });
+
+        renditionRef.current.on('touchstart', (event: TouchEvent) => {
+          const touch = event.changedTouches[0];
+          if (touch.screenX < window.innerWidth * 0.3) handlePrevPage();
+          if (touch.screenX > window.innerWidth * 0.7) handleNextPage();
+        });
 
       } catch (err) {
         console.error('Failed to load book:', err);
         setError('Failed to load the book. The file might be corrupted or in an unsupported format.');
-        setIsLoading(false);
       }
     };
 
@@ -143,42 +164,13 @@ export const Reader: React.FC = () => {
     };
   }, [setTheme]);
 
-  // Navigation handlers - exactly like the example
+  // Navigation handlers
   const handlePrevPage = () => {
-    renditionRef.current?.prev();
+    if (renditionRef.current) renditionRef.current.prev();
   };
 
   const handleNextPage = () => {
-    renditionRef.current?.next();
-  };
-
-  // Add document level keyboard listener like the example
-  useEffect(() => {
-    const handleKeyUp = (e: KeyboardEvent) => {
-      // Left Key
-      if ((e.keyCode || e.which) == 37) {
-        renditionRef.current?.prev();
-      }
-      // Right Key
-      if ((e.keyCode || e.which) == 39) {
-        renditionRef.current?.next();
-      }
-    };
-
-    document.addEventListener("keyup", handleKeyUp, false);
-    
-    return () => {
-      document.removeEventListener("keyup", handleKeyUp, false);
-    };
-  }, []);
-
-  const goToPage = (pageNumber: number) => {
-    if (!renditionRef.current || !bookRef.current) return;
-    
-    const location = bookRef.current.locations.cfiFromLocation(pageNumber - 1);
-    if (location) {
-      renditionRef.current.display(location);
-    }
+    if (renditionRef.current) renditionRef.current.next();
   };
 
   // Don't render anything if no book is selected
@@ -211,29 +203,6 @@ export const Reader: React.FC = () => {
         ) : (
           <>
             <div ref={viewerRef} className={`absolute inset-0 bg-white dark:bg-gray-800 transition-colors ${styles.container}`} />
-            {!isLoading && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4 bg-white/90 dark:bg-gray-800/90 px-4 py-2 rounded-lg shadow-lg">
-                <button
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={handlePrevPage}
-                  disabled={currentPage <= 1}
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <span className="text-sm">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={handleNextPage}
-                  disabled={currentPage >= totalPages}
-                  aria-label="Next page"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
             <button
               className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg hover:bg-white"
               onClick={handlePrevPage}
