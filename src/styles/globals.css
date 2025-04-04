@@ -1,0 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400;1,600&family=Literata:ital,wght@0,400;0,600;1,400;1,600&family=Source+Serif+Pro:ital,wght@0,400;0,600;1,400;1,600&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* Base styles for the reader content */
+.reader-content {
+  font-family: var(--font-family, inherit);
+}
+
+/* Dark mode styles */
+.dark .reader-content {
+  color: #e5e7eb;
+  background-color: #1f2937;
+}

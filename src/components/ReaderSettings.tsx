@@ -1,9 +1,15 @@
 import React from 'react';
 import { useReaderStore } from '../store';
-import { Sun, Moon, Plus, Minus, Text } from 'lucide-react';
+import { Sun, Moon, Plus, Minus, Text, Type } from 'lucide-react';
+
+const FONT_OPTIONS = {
+  default: 'Publisher Default',
+  option1: "'Crimson Pro', 'Literata', serif",
+  option2: "'Source Serif Pro', 'Merriweather', serif",
+};
 
 export const ReaderSettings: React.FC = () => {
-  const { fontSize, lineHeight, theme, setFontSize, setLineHeight, setTheme } = useReaderStore();
+  const { fontSize, lineHeight, theme, fontFamily, setFontSize, setLineHeight, setTheme, setFontFamily } = useReaderStore();
 
   const handleFontSizeChange = (delta: number) => {
     setFontSize(Math.max(12, Math.min(24, fontSize + delta)));
@@ -15,6 +21,25 @@ export const ReaderSettings: React.FC = () => {
 
   return (
     <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 flex items-center gap-4">
+      {/* Font Family Selection */}
+      <div className="flex items-center gap-2">
+        <Type className="w-5 h-5" />
+        <select
+          className="bg-transparent border rounded px-2 py-1 text-sm"
+          value={fontFamily}
+          onChange={(e) => setFontFamily(e.target.value)}
+          aria-label="Select font family"
+        >
+          {Object.entries(FONT_OPTIONS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="w-px h-6 bg-gray-200 dark:bg-gray-700" />
+
       {/* Font Size Controls */}
       <div className="flex items-center gap-2">
         <button

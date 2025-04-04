@@ -12,6 +12,8 @@ interface ReaderState {
   setFontSize: (size: number) => void;
   setLineHeight: (height: number) => void;
   setTheme: (theme: 'light' | 'dark') => void;
+  fontFamily: string;
+  setFontFamily: (font: string) => void;
 }
 
 export const useReaderStore = create<ReaderState>((set) => ({
@@ -25,4 +27,6 @@ export const useReaderStore = create<ReaderState>((set) => ({
   setFontSize: (size) => set({ fontSize: size }),
   setLineHeight: (height) => set({ lineHeight: height }),
   setTheme: (theme) => set({ theme: theme }),
+  fontFamily: 'default',
+  setFontFamily: (font) => set({ fontFamily: font }),
 }));

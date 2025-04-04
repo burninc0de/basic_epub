@@ -4,12 +4,20 @@ import { useReaderStore } from '../store';
 import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
 import { ReaderSettings } from './ReaderSettings';
 
+const FONT_OPTIONS = {
+  // Define your font options here
+};
+
 export const Reader: React.FC = () => {
-  const { currentBook, currentCfi, setCurrentCfi, fontSize, lineHeight, theme } = useReaderStore();
+  const { currentBook, currentCfi, setCurrentCfi, fontSize, lineHeight, theme, fontFamily } = useReaderStore();
   const viewerRef = useRef<HTMLDivElement>(null);
   const renditionRef = useRef<ePub.Rendition | null>(null);
   const bookRef = useRef<ePub.Book | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const fontFamilyValue = fontFamily === 'default' 
+    ? 'inherit' 
+    : FONT_OPTIONS[fontFamily as keyof typeof FONT_OPTIONS];
 
   useEffect(() => {
     if (!currentBook || !viewerRef.current) return;
@@ -103,7 +111,12 @@ export const Reader: React.FC = () => {
   if (!currentBook) return null;
 
   return (
-    <div className={`h-screen flex flex-col ${theme === 'dark' ? 'dark' : ''}`}>
+    <div 
+      className={`h-screen flex flex-col ${theme === 'dark' ? 'dark' : ''}`}
+      style={{ 
+        '--font-family': fontFamilyValue
+      } as React.CSSProperties}
+    >
       <div className="bg-white shadow-sm p-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">{currentBook.title}</h1>
         <button
