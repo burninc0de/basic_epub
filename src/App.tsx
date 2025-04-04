@@ -1,10 +1,16 @@
 import React from 'react';
 import { BookList } from './components/BookList';
 import { Reader } from './components/Reader';
+import { ReaderTest } from './components/ReaderTest';
 import { useReaderStore } from './store';
 import { Book as BookIcon } from 'lucide-react';
 
 function App() {
+  // For testing purposes, always render ReaderTest
+  return <ReaderTest />;
+
+  // Original code commented out for later use
+  /*
   const currentBook = useReaderStore((state) => state.currentBook);
 
   if (currentBook) {
@@ -26,6 +32,7 @@ function App() {
       </main>
     </div>
   );
+  */
 }
 
 export default App;
