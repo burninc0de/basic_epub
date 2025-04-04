@@ -1,121 +1,78 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
-import { useReaderStore } from '../store';
 import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
 import { ReaderSettings } from './ReaderSettings';
+import { useReaderStore } from '../store';
 
-import styles from './reader.module.css';
-
-// Available font options for the reader
+// Font options matching Reader.tsx
 const FONT_OPTIONS = {
   default: 'Publisher Default',
   option1: "'Crimson Pro', 'Literata', serif",
   option2: "'Source Serif Pro', 'Merriweather', serif",
 };
 
-// Helper function to get CSS font-family value from the font option key
 const getFontFamilyValue = (key: string) => {
   return FONT_OPTIONS[key as keyof typeof FONT_OPTIONS];
 };
 
 export const Reader: React.FC = () => {
-  // Get reader state and actions from the global store
-  const { currentBook, currentCfi, setCurrentCfi, fontSize, lineHeight, theme, fontFamily, setTheme } = useReaderStore();
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const renditionRef = useRef<ePub.Rendition | null>(null);
+  const bookRef = useRef<ePub.Book | null>(null);
   
-  // Refs to hold DOM elements and epub.js instances
-  const viewerRef = useRef<HTMLDivElement>(null);     // Container where the book will be rendered
-  const renditionRef = useRef<ePub.Rendition | null>(null);  // epub.js rendition instance
-  const bookRef = useRef<ePub.Book | null>(null);     // epub.js book instance
+  // Replace static values with store values
+  const { fontSize, lineHeight, theme, fontFamily, setTheme } = useReaderStore();
   const [error, setError] = useState<string | null>(null);
 
-  // Main useEffect for book loading and initialization - removed style dependencies
   useEffect(() => {
-    if (!currentBook || !viewerRef.current) return;
+    if (!viewerRef.current) return;
 
-    const loadBook = async () => {
-      try {
-        setError(null);
-        bookRef.current = ePub(currentBook.filePath);
-        await bookRef.current.ready;
-        
-        renditionRef.current = bookRef.current.renderTo(viewerRef.current!, {
-          width: '100%',
-          height: '100%',
-          spread: 'none',
-          flow: 'paginated',
-          manager: 'default',
-          minSpreadWidth: 800,
-          allowScriptedContent: true,
-        });
+    // Load the book - using a test EPUB for now
+    bookRef.current = ePub("https://s3.amazonaws.com/epubjs/books/moby-dick/OPS/package.opf");
 
-        // Apply initial styles right after creating the rendition
-        renditionRef.current.themes.default({
-          body: {
-            'font-size': `${fontSize}px !important`,
-            'line-height': `${lineHeight} !important`,
-            'font-family': `${getFontFamilyValue(fontFamily)} !important`,
-            'background-color': theme === 'dark' ? '#1f2937 !important' : '#ffffff !important',
-            'color': theme === 'dark' ? '#f3f4f6 !important' : '#111827 !important',
-          },
-          'a': {
-            'color': theme === 'dark' ? '#60a5fa !important' : '#2563eb !important',
-          },
-          'h1, h2, h3, h4, h5, h6': {
-            'color': theme === 'dark' ? '#f3f4f6 !important' : '#111827 !important',
-          },
-          'img': {
-            'filter': theme === 'dark' ? 'brightness(0.8) contrast(1.2)' : 'none',
-          },
-          '.container ': {
-            'width': '100% !important',
-            'max-width': '100vw !important',
-            '@media screen and (min-width: 769px)': {
-              'width': '546px !important'
-            }
-          },
-          '.epub-view': {
-            'width': '100% !important',
-            'max-width': '100vw !important',
-            '@media screen and (min-width: 769px)': {
-              'width': '546px !important'
-            }
-          }
-        });
+    // Create rendition with updated options
+    renditionRef.current = bookRef.current.renderTo(viewerRef.current, {
+      width: '100%',
+      height: '100%',
+      spread: 'none',
+      flow: 'paginated',
+      manager: 'default',
+      minSpreadWidth: 800,
+      allowScriptedContent: true,
+    });
 
-        // Display book at last saved position or start
-        await renditionRef.current.display(currentCfi || undefined);
+    // Display first chapter
+    renditionRef.current.display("chapter_001.xhtml");
 
-        // Set up event listeners for navigation and tracking
-        renditionRef.current.on('keyup', (event: KeyboardEvent) => {
-          if (event.key === 'ArrowLeft') handlePrevPage();
-          if (event.key === 'ArrowRight') handleNextPage();
-        });
-
-        renditionRef.current.on('locationChanged', (location: ePub.Location) => {
-          setCurrentCfi(location.start.cfi);
-        });
-
-        renditionRef.current.on('touchstart', (event: TouchEvent) => {
-          const touch = event.changedTouches[0];
-          if (touch.screenX < window.innerWidth * 0.3) handlePrevPage();
-          if (touch.screenX > window.innerWidth * 0.7) handleNextPage();
-        });
-
-      } catch (err) {
-        console.error('Failed to load book:', err);
-        setError('Failed to load the book. The file might be corrupted or in an unsupported format.');
-      }
+    // Set up keyboard navigation
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if ((e.keyCode || e.which) == 37) renditionRef.current?.prev();
+      if ((e.keyCode || e.which) == 39) renditionRef.current?.next();
     };
 
-    loadBook();
+    document.addEventListener("keyup", handleKeyUp, false);
 
     return () => {
+      document.removeEventListener("keyup", handleKeyUp, false);
       if (renditionRef.current) renditionRef.current.destroy();
       if (bookRef.current) bookRef.current.destroy();
     };
-  }, [currentBook, currentCfi, setCurrentCfi]); // Removed style dependencies
+  }, []); // Remove theme dependency since we handle it in the separate useEffect
 
-  // Separate useEffect for styling updates
+  // Add system theme detection
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    setTheme(mediaQuery.matches ? 'dark' : 'light');
+    mediaQuery.addEventListener('change', handleChange);
+    
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  // Add new useEffect for styling updates
   useEffect(() => {
     if (!renditionRef.current) return;
     
@@ -146,25 +103,6 @@ export const Reader: React.FC = () => {
     });
   }, [fontSize, lineHeight, theme, fontFamily]);
 
-  // useEffect to sync with system dark mode preference
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      setTheme(e.matches ? 'dark' : 'light');
-    };
-
-    // Set initial value
-    setTheme(mediaQuery.matches ? 'dark' : 'light');
-
-    // Listen for changes
-    mediaQuery.addEventListener('change', handleChange);
-    
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
-  }, [setTheme]);
-
-  // Navigation handlers
   const handlePrevPage = () => {
     if (renditionRef.current) renditionRef.current.prev();
   };
@@ -173,25 +111,20 @@ export const Reader: React.FC = () => {
     if (renditionRef.current) renditionRef.current.next();
   };
 
-  // Don't render anything if no book is selected
-  if (!currentBook) return null;
-
-  // Main render with:
-  // - Header with book title and close button
-  // - Book content viewer
-  // - Navigation buttons
-  // - Reader settings panel
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
+      {/* Header */}
       <div className="bg-white shadow-sm p-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{currentBook.title}</h1>
+        <h1 className="text-xl font-semibold">Test Book</h1>
         <button
           className="text-gray-600 hover:text-gray-900"
-          onClick={() => useReaderStore.getState().setCurrentBook(null)}
+          onClick={() => window.history.back()}
         >
           Close
         </button>
       </div>
+
+      {/* Main content area */}
       <div className="flex-1 relative">
         {error ? (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -202,7 +135,10 @@ export const Reader: React.FC = () => {
           </div>
         ) : (
           <>
-            <div ref={viewerRef} className={`absolute inset-0 bg-white dark:bg-gray-800 transition-colors ${styles.container}`} />
+            <div 
+              ref={viewerRef} 
+              className={`absolute inset-0 bg-white dark:bg-gray-800 transition-colors`} 
+            />
             <button
               className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 p-2 rounded-full shadow-lg hover:bg-white"
               onClick={handlePrevPage}
@@ -220,6 +156,8 @@ export const Reader: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Reader Settings Panel */}
       <ReaderSettings />
     </div>
   );

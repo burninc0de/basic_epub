@@ -16,9 +16,9 @@ export default defineConfig({
       'Content-Security-Policy': [
         "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://*.amazonaws.com",
         "img-src 'self' data: blob: https://*.unsplash.com https://*.amazonaws.com",
-        "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com",
-        "style-src-elem 'self' 'unsafe-inline' blob: https://fonts.googleapis.com",
-        "font-src 'self' data: https://fonts.gstatic.com",
+        "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com https://*.amazonaws.com",
+        "style-src-elem 'self' 'unsafe-inline' blob: https://fonts.googleapis.com https://*.amazonaws.com",
+        "font-src 'self' data: https://fonts.gstatic.com https://*.amazonaws.com",
         "connect-src 'self' https://*.unsplash.com https://*.amazonaws.com"
       ].join('; ')
     }

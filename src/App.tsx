@@ -1,13 +1,10 @@
 import React from 'react';
-import { BookList } from './components/BookList';
 import { Reader } from './components/Reader';
-import { ReaderTest } from './components/ReaderTest';
 import { useReaderStore } from './store';
-import { Book as BookIcon } from 'lucide-react';
 
 function App() {
-  // For testing purposes, always render ReaderTest
-  return <ReaderTest />;
+  // For testing purposes, always render Reader
+  return <Reader />;
 
   // Original code commented out for later use
   /*
