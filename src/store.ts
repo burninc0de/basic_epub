@@ -14,6 +14,10 @@ interface ReaderState {
   setTheme: (theme: 'light' | 'dark') => void;
   fontFamily: string;
   setFontFamily: (font: string) => void;
+  currentPage: number;
+  totalPages: number;
+  setCurrentPage: (page: number) => void;
+  setTotalPages: (total: number) => void;
 }
 
 export const useReaderStore = create<ReaderState>((set) => ({
@@ -21,7 +25,8 @@ export const useReaderStore = create<ReaderState>((set) => ({
   currentCfi: null,
   fontSize: 16,
   lineHeight: 1.5,
-  theme: 'light',
+  // Get initial theme from system preference
+  theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
   setCurrentBook: (book) => set({ currentBook: book }),
   setCurrentCfi: (cfi) => set({ currentCfi: cfi }),
   setFontSize: (size) => set({ fontSize: size }),
@@ -29,4 +34,8 @@ export const useReaderStore = create<ReaderState>((set) => ({
   setTheme: (theme) => set({ theme: theme }),
   fontFamily: 'default',
   setFontFamily: (font) => set({ fontFamily: font }),
+  currentPage: 1,
+  totalPages: 1,
+  setCurrentPage: (page: number) => set({ currentPage: page }),
+  setTotalPages: (total: number) => set({ totalPages: total }),
 }));

@@ -13,7 +13,14 @@ export default defineConfig({
       interval: 100
     },
     headers: {
-      'Content-Security-Policy': "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; img-src 'self' data: blob: https:; frame-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+      'Content-Security-Policy': [
+        "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:",
+        "img-src 'self' data: blob: https://*.unsplash.com",
+        "style-src 'self' 'unsafe-inline' blob: https://fonts.googleapis.com",
+        "style-src-elem 'self' 'unsafe-inline' blob: https://fonts.googleapis.com",
+        "font-src 'self' data: https://fonts.gstatic.com",
+        "connect-src 'self' https://*.unsplash.com",
+      ].join('; ')
     }
   },
 });
