@@ -7,8 +7,8 @@ import { ReaderSettings } from './ReaderSettings';
 export const Reader: React.FC = () => {
   const { currentBook, currentCfi, setCurrentCfi, fontSize, lineHeight, theme } = useReaderStore();
   const viewerRef = useRef<HTMLDivElement>(null);
-  const renditionRef = useRef<any>(null);
-  const bookRef = useRef<any>(null);
+  const renditionRef = useRef<ePub.Rendition | null>(null);
+  const bookRef = useRef<ePub.Book | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,27 +25,19 @@ export const Reader: React.FC = () => {
         // Wait for book to be ready before rendering
         await bookRef.current.ready;
         
-        renditionRef.current = bookRef.current.renderTo(viewerRef.current, {
+
+        renditionRef.current = bookRef.current.renderTo(viewerRef.current!, {
           width: '100%',
           height: '100%',
           spread: 'none',
-          flow: 'scrolled-doc', // Change from 'paginated' to 'scrolled-doc'
+          flow: 'scrolled-doc',
           manager: 'default',
           minSpreadWidth: 800,
+          allowScriptedContent: true,
         });
 
         // Initialize rendition
         await renditionRef.current.display(currentCfi || undefined);
-
-        // Add debug logging
-        renditionRef.current.on('rendered', (section: any) => {
-          console.log('Rendered section:', section);
-        });
-
-        // Add error handling for navigation
-        renditionRef.current.on('navigation', (ev: any) => {
-          console.log('Navigation event:', ev);
-        });
 
         // Set up keyboard navigation
         renditionRef.current.on('keyup', (event: KeyboardEvent) => {
@@ -54,7 +46,7 @@ export const Reader: React.FC = () => {
         });
 
         // Track location changes
-        renditionRef.current.on('locationChanged', (location: any) => {
+        renditionRef.current.on('locationChanged', (location: ePub.Location) => {
           setCurrentCfi(location.start.cfi);
         });
 
@@ -81,7 +73,7 @@ export const Reader: React.FC = () => {
         bookRef.current.destroy();
       }
     };
-  }, [currentBook]);
+  }, [currentBook, currentCfi, setCurrentCfi]);
 
   useEffect(() => {
     if (!renditionRef.current) return;
