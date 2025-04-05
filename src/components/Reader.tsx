@@ -107,7 +107,10 @@ export const Reader: React.FC = () => {
         'line-height': `${lineHeight} !important`,
         'background-color': theme === 'dark' ? '#1f2937 !important' : '#ffffff !important',
         'color': theme === 'dark' ? '#f3f4f6 !important' : '#111827 !important',
-        ...(window.innerWidth > 100 && { 'column-width': '400px !important' }), // Apply only if screen width > 100px
+        ...(window.innerWidth > 100 && { 'column-width': '400px !important' ,
+
+
+        }), // Apply only if screen width > 100px
       },
       ...(fontValue !== 'inherit' && {
         'body, p': {
