@@ -38,9 +38,29 @@ export const Reader: React.FC = () => {
         allowScriptedContent: true,
       });
 
-      // Display first chapter
-      renditionRef.current.display("chapter_001.xhtml").catch(err => {
-        setError(`Failed to load chapter: ${err.message}`);
+      // Retrieve TOC and set it in state
+      bookRef.current.loaded.navigation.then((navigation) => {
+        setToc(navigation.toc);
+      });
+
+      // Retrieve the last location from localStorage
+      const lastLocation = localStorage.getItem('epub-reader-location');
+      if (lastLocation) {
+        renditionRef.current.display(lastLocation).catch(err => {
+          setError(`Failed to load last location: ${err.message}`);
+        });
+      } else {
+        // Display first chapter if no saved location
+        renditionRef.current.display("chapter_001.xhtml").catch(err => {
+          setError(`Failed to load chapter: ${err.message}`);
+        });
+      }
+
+      // Save the current location whenever it changes
+      renditionRef.current.on('relocated', (location) => {
+        if (location && location.start) {
+          localStorage.setItem('epub-reader-location', location.start.cfi);
+        }
       });
     } catch (err) {
       setError(`Failed to load book: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -94,9 +114,9 @@ export const Reader: React.FC = () => {
       },
       ...(fontValue !== 'inherit' && {
         'body, p': {
-          'font-family': `${fontValue} !important`
-        }
-      })
+          'font-family': `${fontValue} !important`,
+        },
+      }),
     });
   }, [fontSize, lineHeight, theme, fontFamily, isDoubleColumn]);
 
