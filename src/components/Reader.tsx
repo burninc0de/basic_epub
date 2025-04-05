@@ -9,6 +9,7 @@ export const Reader: React.FC = () => {
   const viewerRef = useRef<HTMLDivElement>(null);
   const renditionRef = useRef<ePub.Rendition | null>(null);
   const bookRef = useRef<ePub.Book | null>(null);
+  const [toc, setToc] = useState<ePub.Toc[]>([]); // State to store TOC
   
   // Replace static values with store values
   const { fontSize, lineHeight, theme, fontFamily, setTheme } = useReaderStore();
@@ -30,6 +31,11 @@ export const Reader: React.FC = () => {
         manager: 'default',
         minSpreadWidth: 800,
         allowScriptedContent: true,
+      });
+
+      // Retrieve TOC and set it in state
+      bookRef.current.loaded.navigation.then((navigation) => {
+        setToc(navigation.toc);
       });
 
       // Retrieve the last location from localStorage
@@ -170,7 +176,7 @@ export const Reader: React.FC = () => {
       </div>
 
       {/* Reader Settings Panel */}
-      <ReaderSettings />
+      <ReaderSettings toc={toc} rendition={renditionRef.current} />
     </div>
   );
 };
