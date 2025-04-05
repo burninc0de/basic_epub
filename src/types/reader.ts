@@ -3,6 +3,31 @@ export enum Theme {
   Dark = 'dark'
 }
 
+export const FONT_OPTIONS = {
+  default: {
+    label: 'Publisher Default',
+    value: "inherit"  // Changed from 'inherit' to null
+  },
+  option1: {
+    label: 'Libre Baskerville',
+    value: "'Libre Baskerville', 'Georgia', serif"
+  },
+  option3: {
+    label: 'Newsreader',
+    value: "'Newsreader', 'Times New Roman', serif"
+  },
+  option4: {
+    label: 'Lora',
+    value: "'Lora', 'Charter', serif"
+  }
+} as const;
+
+export type FontFamily = keyof typeof FONT_OPTIONS;
+
+export const getFontFamilyValue = (key: FontFamily): string | null => {
+  return FONT_OPTIONS[key].value;
+};
+
 export type ThemeStyles = {
   body: {
     fontSize: string;

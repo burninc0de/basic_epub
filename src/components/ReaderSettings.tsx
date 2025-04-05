@@ -2,16 +2,7 @@ import React from 'react';
 import { useReaderStore } from '../store';
 import { Sun, Moon, Plus, Minus, Text, Type } from 'lucide-react';
 import { useState } from 'react';
-
-const FONT_OPTIONS = {
-  default: 'Publisher Default',
-  option1: "'Crimson Pro', 'Literata', serif",
-  option2: "'Source Serif Pro', 'Merriweather', serif",
-};
-
-const getFontFamilyValue = (key: string) => {
-  return FONT_OPTIONS[key as keyof typeof FONT_OPTIONS];
-};
+import { FONT_OPTIONS, getFontFamilyValue, FontFamily } from '../types/reader';
 
 export const ReaderSettings: React.FC = () => {
   const { fontSize, lineHeight, theme, fontFamily, setFontSize, setLineHeight, setTheme, setFontFamily } = useReaderStore();
@@ -39,19 +30,19 @@ export const ReaderSettings: React.FC = () => {
         
         {showFontMenu && (
           <div className="absolute bottom-full mb-2 left-0 sm:left-1/2 sm:-translate-x-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-1 min-w-[200px] max-w-[280px]">
-            {Object.entries(FONT_OPTIONS).map(([value, label]) => (
+            {Object.entries(FONT_OPTIONS).map(([key, font]) => (
               <button
-                key={value}
+                key={key}
                 className={`w-full text-left px-3 py-2 text-sm rounded flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                  fontFamily === value ? 'bg-gray-100 dark:bg-gray-700' : ''
+                  fontFamily === key ? 'bg-gray-100 dark:bg-gray-700' : ''
                 }`}
                 onClick={() => {
-                  setFontFamily(value);
+                  setFontFamily(key as FontFamily);
                   setShowFontMenu(false);
                 }}
               >
-                <span className="font-sans">{label}</span>
-                <span className="text-gray-500 dark:text-gray-400" style={{ fontFamily: getFontFamilyValue(value) }}>
+                <span className="font-sans">{font.label}</span>
+                <span className="text-gray-500 dark:text-gray-400" style={{ fontFamily: font.value }}>
                   Aa
                 </span>
               </button>

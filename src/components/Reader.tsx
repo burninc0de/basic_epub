@@ -3,17 +3,7 @@ import ePub from 'epubjs';
 import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
 import { ReaderSettings } from './ReaderSettings';
 import { useReaderStore } from '../store';
-
-// Font options matching Reader.tsx
-const FONT_OPTIONS = {
-  default: 'Publisher Default',
-  option1: "'Crimson Pro', 'Literata', serif",
-  option2: "'Source Serif Pro', 'Merriweather', serif",
-};
-
-const getFontFamilyValue = (key: string) => {
-  return FONT_OPTIONS[key as keyof typeof FONT_OPTIONS];
-};
+import { FONT_OPTIONS, getFontFamilyValue, FontFamily } from '../types/reader';
 
 export const Reader: React.FC = () => {
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -81,31 +71,27 @@ export const Reader: React.FC = () => {
   // Add new useEffect for styling updates
   useEffect(() => {
     if (!renditionRef.current) return;
+
+    console.log('Updating styles:', { fontSize, lineHeight, theme, fontFamily });
     
+    const fontValue = getFontFamilyValue(fontFamily);
+    
+    // First, remove any previously set styles
+    renditionRef.current.themes.override('');
+
+    // Then apply new styles
     renditionRef.current.themes.default({
       body: {
         'font-size': `${fontSize}px !important`,
         'line-height': `${lineHeight} !important`,
-        'font-family': `${getFontFamilyValue(fontFamily)} !important`,
         'background-color': theme === 'dark' ? '#1f2937 !important' : '#ffffff !important',
         'color': theme === 'dark' ? '#f3f4f6 !important' : '#111827 !important',
       },
-      'a': {
-        'color': theme === 'dark' ? '#60a5fa !important' : '#2563eb !important',
-      },
-      'h1, h2, h3, h4, h5, h6': {
-        'color': theme === 'dark' ? '#f3f4f6 !important' : '#111827 !important',
-      },
-      'img': {
-        'filter': theme === 'dark' ? 'brightness(0.8) contrast(1.2)' : 'none',
-      },
-      '.epub-view': {
-        'width': '100% !important',
-        'max-width': '100vw !important',
-        '@media screen and (min-width: 769px)': {
-          'width': '546px !important'
+      ...(fontValue !== 'inherit' && {
+        'body, p': {
+          'font-family': `${fontValue} !important`
         }
-      },
+      })
     });
   }, [fontSize, lineHeight, theme, fontFamily]);
 
@@ -116,6 +102,7 @@ export const Reader: React.FC = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
   }, [theme]);
 
   const handlePrevPage = () => {
