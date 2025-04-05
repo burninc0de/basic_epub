@@ -32,9 +32,24 @@ export const Reader: React.FC = () => {
         allowScriptedContent: true,
       });
 
-      // Display first chapter
-      renditionRef.current.display("chapter_001.xhtml").catch(err => {
-        setError(`Failed to load chapter: ${err.message}`);
+      // Retrieve the last location from localStorage
+      const lastLocation = localStorage.getItem('epub-reader-location');
+      if (lastLocation) {
+        renditionRef.current.display(lastLocation).catch(err => {
+          setError(`Failed to load last location: ${err.message}`);
+        });
+      } else {
+        // Display first chapter if no saved location
+        renditionRef.current.display("chapter_001.xhtml").catch(err => {
+          setError(`Failed to load chapter: ${err.message}`);
+        });
+      }
+
+      // Save the current location whenever it changes
+      renditionRef.current.on('relocated', (location) => {
+        if (location && location.start) {
+          localStorage.setItem('epub-reader-location', location.start.cfi);
+        }
       });
     } catch (err) {
       setError(`Failed to load book: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -86,12 +101,13 @@ export const Reader: React.FC = () => {
         'line-height': `${lineHeight} !important`,
         'background-color': theme === 'dark' ? '#1f2937 !important' : '#ffffff !important',
         'color': theme === 'dark' ? '#f3f4f6 !important' : '#111827 !important',
+        ...(window.innerWidth > 100 && { 'column-width': '400px !important' }), // Apply only if screen width > 100px
       },
       ...(fontValue !== 'inherit' && {
         'body, p': {
-          'font-family': `${fontValue} !important`
-        }
-      })
+          'font-family': `${fontValue} !important`,
+        },
+      }),
     });
   }, [fontSize, lineHeight, theme, fontFamily]);
 

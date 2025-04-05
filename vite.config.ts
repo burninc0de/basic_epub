@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
+    // Uncomment the following line if you want to exclude lucide-react from pre-bundling
+    // causes issues on linux with the lucide-react package
     // exclude: ['lucide-react'],
   },
   server: {
