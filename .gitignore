@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+#linux specific ignores because of some buggery
+vite.config.ts
+.gitignore
