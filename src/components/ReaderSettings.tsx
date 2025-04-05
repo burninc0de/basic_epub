@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useReaderStore } from '../store';
 import { Sun, Moon, Plus, Minus, Text, Type, List, Columns } from 'lucide-react'; // Import Columns icon
 import { FONT_OPTIONS, getFontFamilyValue, FontFamily } from '../types/reader';
