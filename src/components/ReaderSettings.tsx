@@ -1,3 +1,4 @@
+//git hell
 import React, { useState, useEffect, useRef } from 'react';
 import { useReaderStore } from '../store';
 import { Sun, Moon, Plus, Minus, Text, Type, List, Columns } from 'lucide-react'; // Import Columns icon
