@@ -9,11 +9,14 @@ export const Reader: React.FC = () => {
   const viewerRef = useRef<HTMLDivElement>(null);
   const renditionRef = useRef<ePub.Rendition | null>(null);
   const bookRef = useRef<ePub.Book | null>(null);
-  const [toc, setToc] = useState<ePub.Toc[]>([]); // State to store TOC
-  
-  // Replace static values with store values
+  const [toc, setToc] = useState<ePub.Toc[]>([]);
+  const [isDoubleColumn, setIsDoubleColumn] = useState(false); // State for column layout
   const { fontSize, lineHeight, theme, fontFamily, setTheme } = useReaderStore();
   const [error, setError] = useState<string | null>(null);
+
+  const handleToggleColumns = (isDouble: boolean) => {
+    setIsDoubleColumn(isDouble);
+  };
 
   useEffect(() => {
     if (!viewerRef.current) return;
@@ -93,24 +96,19 @@ export const Reader: React.FC = () => {
   useEffect(() => {
     if (!renditionRef.current) return;
 
-    console.log('Updating styles:', { fontSize, lineHeight, theme, fontFamily });
-    
     const fontValue = getFontFamilyValue(fontFamily);
-    
-    // First, remove any previously set styles
-    renditionRef.current.themes.override('');
 
-    // Then apply new styles
+    // Apply styles to the rendition body
     renditionRef.current.themes.default({
       body: {
         'font-size': `${fontSize}px !important`,
         'line-height': `${lineHeight} !important`,
-        'background-color': theme === 'dark' ? '#1f2937 !important' : '#ffffff !important',
-        'color': theme === 'dark' ? '#f3f4f6 !important' : '#111827 !important',
-        ...(window.innerWidth > 100 && { 'column-width': '400px !important' ,
-
-
-        }), // Apply only if screen width > 100px
+        'background-color': theme === 'dark' ? '#1f2937 !important' : '#ffffff !important', // Fixed the mismatched backtick
+        'color': theme === 'dark' ? '#f3f4f6 !important' : '#111827 !important', // Fixed the mismatched backtick
+        ...(isDoubleColumn && {
+          'column-width': '400px',
+          'column-gap': '20px',
+        }),
       },
       ...(fontValue !== 'inherit' && {
         'body, p': {
@@ -118,7 +116,7 @@ export const Reader: React.FC = () => {
         },
       }),
     });
-  }, [fontSize, lineHeight, theme, fontFamily]);
+  }, [fontSize, lineHeight, theme, fontFamily, isDoubleColumn]);
 
   // Add this useEffect to handle dark mode class
   useEffect(() => {
@@ -179,7 +177,7 @@ export const Reader: React.FC = () => {
       </div>
 
       {/* Reader Settings Panel */}
-      <ReaderSettings toc={toc} rendition={renditionRef.current} />
+      <ReaderSettings toc={toc} rendition={renditionRef.current} onToggleColumns={handleToggleColumns} />
     </div>
   );
 };

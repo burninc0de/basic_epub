@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useReaderStore } from '../store';
-import { Sun, Moon, Plus, Minus, Text, Type, List } from 'lucide-react';
+import { Sun, Moon, Plus, Minus, Text, Type, List, Columns } from 'lucide-react'; // Import Columns icon
 import { FONT_OPTIONS, getFontFamilyValue, FontFamily } from '../types/reader';
 
 interface ReaderSettingsProps {
   toc: ePub.Toc[];
   rendition: ePub.Rendition | null;
+  onToggleColumns: (isDoubleColumn: boolean) => void; // Add onToggleColumns prop
 }
 
-export const ReaderSettings: React.FC<ReaderSettingsProps> = ({ toc, rendition }) => {
+export const ReaderSettings: React.FC<ReaderSettingsProps> = ({ toc, rendition, onToggleColumns }) => {
   const { fontSize, lineHeight, theme, fontFamily, setFontSize, setLineHeight, setTheme, setFontFamily } = useReaderStore();
   const [showFontMenu, setShowFontMenu] = useState(false);
   const [showTOC, setShowTOC] = useState(false);
+  const [isDoubleColumn, setIsDoubleColumn] = useState(false); // State for column layout
   const modalRef = useRef<HTMLDivElement>(null);
 
   const handleFontSizeChange = (delta: number) => {
@@ -29,6 +31,40 @@ export const ReaderSettings: React.FC<ReaderSettingsProps> = ({ toc, rendition }
     setShowTOC(false);
   };
 
+  // Apply column layout class to the rendition body
+  useEffect(() => {
+    if (rendition?.getContents()) {
+      const renditionBody = rendition.getContents()[0]?.document?.body;
+      if (renditionBody) {
+        if (isDoubleColumn) {
+          renditionBody.classList.add('double-column');
+        } else {
+          renditionBody.classList.remove('double-column');
+        }
+      }
+    }
+  }, [isDoubleColumn, rendition]);
+
+  useEffect(() => {
+    if (rendition?.getContents()) {
+      const renditionBody = rendition.getContents()[0]?.document?.body;
+      if (renditionBody) {
+        // Apply styles directly to the rendition body
+        rendition.themes.default({
+          body: isDoubleColumn
+          ? {
+              'column-width': '400px !important',
+              'column-gap': '20px',
+            }
+          : {
+              'column-width': 'auto !important', // Reset column width
+              'column-gap': '0',      // Reset column gap
+            },
+        });
+      }
+    }
+  }, [isDoubleColumn, rendition]);
+
   // Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -45,6 +81,12 @@ export const ReaderSettings: React.FC<ReaderSettingsProps> = ({ toc, rendition }
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showTOC]);
+
+  const handleColumnToggle = () => {
+    const newState = !isDoubleColumn;
+    setIsDoubleColumn(newState);
+    onToggleColumns(newState); // Notify parent (Reader) about the toggle
+  };
 
   return (
     <div className="fixed bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 dark:text-white rounded-lg shadow-lg p-2 sm:p-3 flex items-center gap-2 sm:gap-4 max-w-[95%] sm:max-w-none">
@@ -90,6 +132,15 @@ export const ReaderSettings: React.FC<ReaderSettingsProps> = ({ toc, rendition }
           </div>
         </div>
       )}
+
+      {/* Column Layout Toggle */}
+      <button
+        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+        onClick={handleColumnToggle}
+        aria-label="Toggle column layout"
+      >
+        <Columns className="w-5 h-5" />
+      </button>
 
       {/* Font Family Selection */}
       <div className="relative">
